@@ -8,10 +8,9 @@ import os
 from MainApp.views import Qiniu
 
 # ppt存放文件夹
-ppt_dir = './static/ppt'
-png_dir = './static/ppt-png'
-if not os.path.exists(ppt_dir):
-    os.makedirs(ppt_dir)
+ppt_dir = r'D:\pythonProject save\SZRPPT\static\ppt'
+# 图片存放文件夹
+jpg_dir = r'D:\pythonProject save\SZRPPT\static\jpg'
 
 
 class PPTtoImages(APIView):
@@ -20,8 +19,8 @@ class PPTtoImages(APIView):
         # 检查是否接收到了文件
         if 'ppt' not in request.FILES:
             return Response({'error': '没有ppt文件'}, status=status.HTTP_400_BAD_REQUEST)
-        pptx_file = request.FILES['ppt']
 
+        pptx_file = request.FILES['ppt']
         user_id = request.data['user_id']
         project_id = request.data['project_id']
 
@@ -30,36 +29,44 @@ class PPTtoImages(APIView):
         # 保存接收的ppt文件到本地
         self.PptSave(pptx_file)
         # 进行ppt转图片并返回图片列表
-        imagelist = self.PpttoImage()
+        image_list = self.PpttoImage()
 
+        urls = []
 
-        # self.delete_files(ppt_dir)
+        for i, path in enumerate(image_list):
+            ret = Qiniu.upload(i, path, user_id=user_id, project_id=project_id, type="image")
+            url = "http://s8xw6kecm.hn-bkt.clouddn.com/" + ret['key']
+            urls.append(url)
 
-        for i, path in enumerate(imagelist):
-            Qiniu.upload(i, path, user_id=user_id, project_id=project_id,type="image")
-
-        self.delete_all_contents(png_dir)
-        return Response({'message': '图片文件上传成功'}, status=status.HTTP_200_OK)
+        self.delete_files(jpg_dir)
+        self.delete_files(ppt_dir)
+        return Response({'message': '上传成功', "image": f'{urls}'}, status=status.HTTP_200_OK)
 
     def get(self, request):
         user_id = request.data["user_id"]
         project_id = request.data["project_id"]
         type = "image"
-        urls = Qiniu.download_folder(user_id, project_id,type)
-        return Response({"urls":urls})
+        urls = Qiniu.download_folder(user_id, project_id, type)
+        return Response({"urls": urls})
 
     # PPT转图片
     def PpttoImage(self):
+        if not os.path.exists(jpg_dir):
+            os.makedirs(jpg_dir)
+
         office.ppt.ppt2img(input_path=f'D:\\pythonProject save\\SZRPPT\\static\\ppt',
-                           output_path=f'D:\\pythonProject save\\SZRPPT\\static\\ppt-png',
+                           output_path=f'D:\\pythonProject save\\SZRPPT\\static\\jpg',
                            merge=False)
 
-        images = pofile.get_files(path=f'D:\\pythonProject save\\SZRPPT\\static\\ppt-png', suffix='JPG')
+        images = pofile.get_files(path=f'D:\\pythonProject save\\SZRPPT\\static\\jpg', suffix='JPG')
 
         return images
 
     # 接收ppt并保存
     def PptSave(self, pptx_file):
+
+        if not os.path.exists(ppt_dir):
+            os.makedirs(ppt_dir)
 
         file_path = os.path.join(ppt_dir, pptx_file.name)
 
@@ -70,15 +77,9 @@ class PPTtoImages(APIView):
         print("ppt接收成功")
 
     # 删除目录中的所有文件
-    def delete_files(self, directory_path):
-        # 列出目录中的所有文件
-        files = os.listdir(directory_path)
-        # 逐个删除文件
-        for file_name in files:
-            file_path = os.path.join(directory_path, file_name)
-            os.remove(file_path)
-
-    # 删除目录中的所有文件,包括文件夹
-    def delete_all_contents(self, directory_path):
-        # 递归删除目录及其内容
-        shutil.rmtree(directory_path)
+    def delete_files(self, folder_path):
+        # 检查文件夹是否存在
+        if os.path.exists(folder_path):
+            # 如果文件夹存在，则删除它及其内容
+            shutil.rmtree(folder_path)
+            print("内容已删除。")

@@ -40,7 +40,8 @@ def upload(file_name, localfile, user_id, project_id, type):
     ret, info = put_file(token, key, localfile, version='v2')
 
     # 打印上传结果信息
-    print(info)
+    # print('info-->',info)
+    # print('ret-->', ret)
 
     # 检查上传是否成功
     if info.status_code == 200:
