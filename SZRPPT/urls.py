@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path
-from MainApp.views import views,PPT,Qiniu,deepsound
+from MainApp.views import views, PPT, Qiniu, deepsound
 
 from rest_framework import routers
 
@@ -26,9 +26,12 @@ router.register("main/user", views.UserView)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', views.LoginView.as_view()),
-    path('main/fileupload',PPT.PPTtoImages.as_view()),
-    path('main/deepsound',deepsound.DeepSound.as_view())
-
+    # ppt上传路由
+    path('main/ppt', PPT.PPTtoImages.as_view()),
+    # 数字人视频路由
+    path('main/deepsound', deepsound.DeepSound.as_view()),
+    # 文件上传路由
+    path('main/upload', Qiniu.upload)
 
 
     # path('main/user/', views.UserView.as_view({

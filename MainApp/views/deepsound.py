@@ -5,6 +5,7 @@
 """
 import hashlib
 import math
+import random
 import time
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -17,6 +18,10 @@ urls = {
     "video": base + "/avatar/v1/2d/video/create",
     "select": base + "/avatar/v1/2d/video/status"
 }
+
+'''
+生成数字人请求头
+'''
 
 
 def getHeader():
@@ -40,19 +45,32 @@ class DeepSound(APIView):
     def post(self, request):
 
         frontend = request.data
+        # 使用的数字人模型id
+        frontend['model_id'] = '44420'
+        # 上传的名称
+        frontend['name'] = f'{random.randint(1, 100000)}'
+
+        print('frontend-->', frontend)
+
         headers = getHeader()
 
         respone = requests.post(urls.get("video"), json=frontend, headers=headers)
 
         print("respone--->", respone.json())
 
-        if respone.status_code == 200:
-            return Response(respone.json())
-        else:
-            return Response(respone.json())
+        video_id = respone.json()['data']['video_id']
 
-    def get(self, request):
-        frontend = { "video_id":request.GET.get('video_id')}
+        if respone.status_code == 200:
+            return Response("生成中》》》")
+        else:
+            return Response("生成失败")
+
+    '''
+    数字人生成视频查询
+    '''
+
+    def get_video(self, video_id):
+        frontend = {"video_id": video_id}
 
         headers = getHeader()
 
@@ -60,7 +78,4 @@ class DeepSound(APIView):
 
         print("respone--->", respone.json())
 
-        if respone.status_code == 200:
-            return Response(respone.json())
-        else:
-            return Response(respone.json())
+        return respone.json()

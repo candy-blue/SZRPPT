@@ -127,8 +127,3 @@ class LoginView(APIView):
 
         return Response({"code":1000,'msg':"登陆成功"})
 
-
-class UploadFileView(APIView):
-
-    def post(self,request):
-        return Response('文件上传')

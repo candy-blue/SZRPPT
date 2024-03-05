@@ -45,9 +45,9 @@ def upload(file_name, localfile, user_id, project_id, type):
 
     # 检查上传是否成功
     if info.status_code == 200:
-        print("File uploaded successfully!")
+        print("七牛云文件上传成功!")
     else:
-        print("Failed to upload file:", info.text)
+        print("七牛云文件上传失败:", info.text)
 
     # 返回上传结果
     return ret
